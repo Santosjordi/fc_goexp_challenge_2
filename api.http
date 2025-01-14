@@ -1,0 +1,23 @@
+### Variables 
+@apiurl = http://localhost:8080
+
+### GET cep
+GET {{apiurl}}/cotacao HTTP/1.1
+
+### GET message with timeout /3_context/2_client_server
+GET {{apiurl}} HTTP/1.1
+
+### POST users
+POST {{apiurl}}/users HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer ACCESS-TOKEN
+
+{
+   "name":"Tenali Ramakrishna",
+   "gender":"Male",
+   "email":"tenali.ramakrishna@15ce.com",
+   "status":"Active"
+}
+
+### GET categories
+GET {{apiurl}}/categories HTTP/1.1
