@@ -8,9 +8,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3" // Import SQLite driver
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var db *sql.DB
@@ -26,12 +29,34 @@ func main() {
 		db.Close()
 	}()
 
-	http.HandleFunc("/cotacao", ExchangeHandler)
-	log.Println("Server started")
-	err = http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: http.DefaultServeMux,
 	}
+
+	http.HandleFunc("/cotacao", ExchangeHandler)
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		log.Println("Server started")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server failed to start: %v", err)
+		}
+	}()
+
+	<-stop
+	log.Println("Shutting down server...")
+
+	// Gracefully shut down the server
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shut down: %v", err)
+	}
+
+	log.Println("Server exiting")
 }
 
 func ExchangeHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +81,7 @@ func ExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = SaveExchangeRate(quote)
+	err = SaveExchangeRate(r.Context(), quote)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 Internal Server Error"))
@@ -119,19 +144,20 @@ func GetExchangeRate(ctx context.Context) (*DolarQuote, error) {
 	return &quote, nil
 }
 
-func SaveExchangeRate(quote *DolarQuote) error {
-	query := `
+func SaveExchangeRate(ctx context.Context, quote *DolarQuote) error {
+	saveCtx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
+	defer cancel()
+
+	stmt, err := db.PrepareContext(saveCtx, `
 		INSERT INTO quotes (code, codein, name, high, low, var_bid, pct_change, bid, ask, timestamp, create_date)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`
-
-	stmt, err := db.Prepare(query)
+	`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(
+	_, err = stmt.ExecContext(saveCtx,
 		quote.Code,
 		quote.Codein,
 		quote.Name,
