@@ -1,8 +1,10 @@
 
 ## Server structure
 
+IGNORE THIS FOLDER
+
 ```
-project/
+CTX_CLIENT_SERVER/SERVER/
 ├── main.go             // Entry point
 ├── handler.go          // HTTP handlers
 ├── db/
