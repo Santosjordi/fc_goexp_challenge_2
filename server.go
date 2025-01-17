@@ -119,6 +119,10 @@ func GetExchangeRate(ctx context.Context) (*DolarQuote, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			log.Println("API request timed out")
+			return nil, fmt.Errorf("request timeout: %w", ctx.Err())
+		}
 		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
 
@@ -171,6 +175,10 @@ func SaveExchangeRate(ctx context.Context, quote *DolarQuote) error {
 		quote.CreateDate,
 	)
 	if err != nil {
+		if saveCtx.Err() == context.DeadlineExceeded {
+			log.Println("DB commit timed out")
+			return fmt.Errorf("request timeout: %w", saveCtx.Err())
+		}
 		return fmt.Errorf("failed to execute prepared statement: %w", err)
 	}
 
