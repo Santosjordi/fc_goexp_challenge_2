@@ -149,7 +149,7 @@ func GetExchangeRate(ctx context.Context) (*DolarQuote, error) {
 }
 
 func SaveExchangeRate(ctx context.Context, quote *DolarQuote) error {
-	saveCtx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
+	saveCtx, cancel := context.WithTimeout(ctx, 10*time.Millisecond)
 	defer cancel()
 
 	stmt, err := db.PrepareContext(saveCtx, `
