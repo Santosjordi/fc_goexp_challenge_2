@@ -1,33 +1,18 @@
 # fc_goexp_challenge_1
-Desafio 1 Pós-graduação Go Expert
+Desafio 2 Pós-graduação Go Expert
 
+ Neste desafio você terá que usar o que aprendemos com Multithreading e APIs para buscar o resultado mais rápido entre duas APIs distintas.
 
-Neste desafio vamos aplicar o que aprendemos sobre webserver http, contextos,
-banco de dados e manipulação de arquivos com Go.
- 
-Você precisará nos entregar dois sistemas em Go:
-- client.go
-- server.go
- 
-Os requisitos para cumprir este desafio são:
- 
-[X] O client.go deverá realizar uma requisição HTTP no server.go solicitando a cotação do dólar.
- 
-[X] O server.go deverá consumir a API contendo o câmbio de Dólar e Real no endereço: https://economia.awesomeapi.com.br/json/last/USD-BRL
+As duas requisições serão feitas simultaneamente para as seguintes APIs:
 
-[X] em seguida deverá retornar no formato JSON o resultado para o cliente.
- 
-[X] Usando o package "context", o server.go deverá registrar no banco de dados SQLite cada cotação recebida
-[X] sendo que o timeout máximo para chamar a API de cotação do dólar deverá ser de 200ms
-[X] o timeout máximo para conseguir persistir os dados no banco deverá ser de 10ms.
- 
-[X] O client.go precisará receber do server.go apenas o valor atual do câmbio (campo "bid" do JSON).
-[X] Utilizando o package "context", o client.go terá um timeout máximo de 300ms para receber o resultado do server.go.
- 
-[] Os 3 contextos deverão retornar erro nos logs caso o tempo de execução seja insuficiente.
- 
-[X] O client.go terá que salvar a cotação atual em um arquivo "cotacao.txt" no formato: Dólar: {valor}
- 
-[X] O endpoint necessário gerado pelo server.go para este desafio será: /cotacao e a porta a ser utilizada pelo servidor HTTP será a 8080.
- 
-Ao finalizar, envie o link do repositório para correção.
+https://brasilapi.com.br/api/cep/v1/01153000 + cep
+
+http://viacep.com.br/ws/" + cep + "/json/
+
+Os requisitos para este desafio são:
+
+[] Acatar a API que entregar a resposta mais rápida e descartar a resposta mais lenta.
+
+[] O resultado da request deverá ser exibido no command line com os dados do endereço, bem como qual API a enviou.
+
+[] Limitar o tempo de resposta em 1 segundo. Caso contrário, o erro de timeout deve ser exibido.
